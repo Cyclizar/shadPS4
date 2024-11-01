@@ -192,7 +192,7 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
             file.Seek(currentPos);
         }
 
-        // Update total extracted size and calculate the percentage.
+        // Update total extracted size and calculate the percentage
         TotalExtractedSize += entry.size;
         int currentPercentage = static_cast<int>((TotalExtractedSize * 100) / pkgSize);
 
