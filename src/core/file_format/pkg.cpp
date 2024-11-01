@@ -50,21 +50,23 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
     if (!file.IsOpen()) {
         return false;
     }
-    pkgSize = file.GetSize();
+    pkgSize = file.GetSize(); // Total size of the package
 
     file.Read(pkgheader);
-    if (pkgheader.magic != 0x7F434E54)
+    if (pkgheader.magic != 0x7F434E54) {
         return false;
+    }
 
     for (const auto& flag : flagNames) {
         if (isFlagSet(pkgheader.pkg_content_flags, flag.first)) {
-            if (!pkgFlags.empty())
-                pkgFlags += (", ");
-            pkgFlags += (flag.second);
+            if (!pkgFlags.empty()) {
+                pkgFlags += ", ";
+            }
+            pkgFlags += flag.second;
         }
     }
 
-    // Find title id it is part of pkg_content_id starting at offset 0x40
+    // Find title ID, part of pkg_content_id starting at offset 0x40
     file.Seek(0x47); // skip first 7 characters of content_id
     file.Read(pkgTitleID);
 
@@ -76,6 +78,8 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
         return false;
     }
 
+    u64 TotalExtractedSize = 0; // Initialize variable to track extracted file sizes
+
     for (int i = 0; i < n_files; i++) {
         PKGEntry entry{};
         file.Read(entry.id);
@@ -85,6 +89,13 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
         file.Read(entry.offset);
         file.Read(entry.size);
         file.Seek(8, Common::FS::SeekOrigin::CurrentPosition);
+
+        // Update the total extracted size with the current file size
+        TotalExtractedSize += entry.size;
+        
+        // Calculate the extraction progress percentage
+        double ProgressPercentage = (static_cast<double>(TotalExtractedSize) / pkgSize) * 100.0;
+        std::cout << "Progress: " << ProgressPercentage << "%\n";
 
         // Try to figure out the name
         const auto name = GetEntryNameByType(entry.id);
@@ -98,10 +109,11 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
             file.ReadRaw<u8>(sfo.data(), entry.size);
         }
     }
+    
     file.Close();
-
     return true;
 }
+
 
 bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::path& extract,
                   std::string& failreason) {
