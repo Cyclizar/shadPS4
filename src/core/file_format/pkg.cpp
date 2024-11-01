@@ -154,6 +154,9 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
         return false;
     }
 
+    u64 TotalExtractedSize = 0; // Track the total size of extracted files
+    int lastPercentage = -1;    // To keep track of the last displayed percentage
+
     for (int i = 0; i < n_files; i++) {
         PKGEntry entry{};
         file.Read(entry.id);
@@ -187,8 +190,23 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
             out.Close();
 
             file.Seek(currentPos);
-            continue;
         }
+
+        // Update total extracted size and calculate the percentage
+        TotalExtractedSize += entry.size;
+        int currentPercentage = static_cast<int>((TotalExtractedSize * 100) / pkgSize);
+
+        // Only update if the percentage has increased by 1%
+        if (currentPercentage > lastPercentage) {
+            lastPercentage = currentPercentage;
+            std::cout << "Progress: " << currentPercentage << "%\n";
+        }
+    }
+    
+    file.Close();
+    return true;
+}
+
 
         if (entry.id == 0x1) {         // DIGESTS, seek;
                                        // file.Seek(entry.offset, fsSeekSet);
