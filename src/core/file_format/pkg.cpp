@@ -155,6 +155,10 @@ private:
     std::string GetEntryNameByType(uint32_t id);
 };
 
+#include <filesystem>
+#include <iostream>
+#include <fstream>
+
 bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::path& extract, std::string& failreason) {
     extract_path = extract;
     pkgpath = filepath;
@@ -228,8 +232,22 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
     }
 
     file.close();
+
+    // Calculate extracted folder size
+    uint64_t extractedFolderSize = 0;
+    for (const auto& file : std::filesystem::recursive_directory_iterator(extract_path)) {
+        if (std::filesystem::is_regular_file(file)) {
+            extractedFolderSize += std::filesystem::file_size(file);
+        }
+    }
+
+    // Calculate the percentage
+    int extractionPercentage = static_cast<int>((extractedFolderSize * 100) / pkgSize);
+    std::cout << "Extraction completed. Extracted folder is " << extractionPercentage << "% of the original PKG size.\n";
+
     return true;
 }
+
 
 std::string PKG::GetEntryNameByType(uint32_t id) {
     // Implementation of GetEntryNameByType to map IDs to file names
