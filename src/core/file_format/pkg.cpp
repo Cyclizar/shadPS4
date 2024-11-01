@@ -6,6 +6,8 @@
 #include "common/logging/formatter.h"
 #include "core/file_format/pkg.h"
 #include "core/file_format/pkg_type.h"
+#include <iostream>
+
 
 static void DecompressPFSC(std::span<const char> compressed_data,
                            std::span<char> decompressed_data) {
