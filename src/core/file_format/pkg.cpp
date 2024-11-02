@@ -154,7 +154,7 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
 //                // std::cout << "Size of the folder: " << size << " bytes" << std::endl;
 //                std::this_thread::sleep_for(std::chrono::seconds(1)); // Sleep for 1 second
 //            }
-    };
+//    };
 
     folderSizePrintLoop();
 
