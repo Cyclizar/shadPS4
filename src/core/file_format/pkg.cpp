@@ -145,7 +145,7 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
                     auto pkgExtractionPercentageVariable1 = size / pkgSize;
                     auto pkgExtractionPercentage = 100 / pkgExtractionPercentageVariable1;
                 }
-                else (){
+                else {
                    std::cout << "Size of the folder: " << size << " bytes, " << "0" << "%" << std::endl; 
                 }
                 std::cout << "Size of the folder: " << size << " bytes, " << pkgExtractionPercentage << "%" << std::endl;
