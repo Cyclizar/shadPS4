@@ -138,19 +138,22 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
     };
 
     auto folderSizePrint = [&]() {
+        while (true) {
         uintmax_t size = getFolderSize(extract_path);
         std::cout << "Size of the folder: " << size << " bytes" << std::endl;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         return 0;
+        }
     };
 
     getFolderSize(extract_path);
 
-    auto folderSizePrintLoop = []() {
-            while (true) { // Correctly using curly braces
-                uintmax_t size = getFolderSize(path);
-                // std::cout << "Size of the folder: " << size << " bytes" << std::endl;
-                std::this_thread::sleep_for(std::chrono::seconds(1)); // Sleep for 1 second
-            }
+//    auto folderSizePrintLoop = []() {
+//            while (true) { // Correctly using curly braces
+//                uintmax_t size = getFolderSize(path);
+//                // std::cout << "Size of the folder: " << size << " bytes" << std::endl;
+//                std::this_thread::sleep_for(std::chrono::seconds(1)); // Sleep for 1 second
+//            }
     };
 
     folderSizePrintLoop();
