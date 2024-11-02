@@ -135,26 +135,35 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
 
         return totalSize;
     };
-    new std::thread([&] {
-        auto folderSizePrint = [&]() {
-            pkgSize = file.GetSize();
-            while (true) {
-                std::this_thread::sleep_for(std::chrono::seconds(1));
-                uintmax_t size = getFolderSize(extract_path);
-                if (pkgSize != 0) {
-                    pkgExtractionPercentageVariable1 = static_cast<double>(size) / pkgSize;
-                    if (pkgExtractionPercentageVariable1 != 0) {
-                    pkgExtractionPercentage = 100 / pkgExtractionPercentageVariable1;
-                    std::cout << "Size of the folder: " << size << " bytes, " << pkgExtractionPercentage << "%" << std::endl;
-                }   
-                    else {
-                   std::cout << "Size of the folder: " << size << " bytes, " << "0" << "%" << std::endl; 
-                }   
-                    if (size >= pkgSize) {
-                        break;
-                    }
+new std::thread([&] {
+    // Define the function inline within the thread
+    pkgSize = file.GetSize();
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+        uintmax_t size = getFolderSize(extract_path);
+
+        if (pkgSize != 0) {
+            auto pkgExtractionPercentageVariable1 = static_cast<double>(size) / pkgSize;
+
+            if (pkgExtractionPercentageVariable1 != 0) {
+                auto pkgExtractionPercentage = 100 / pkgExtractionPercentageVariable1;
+                std::cout << "Size of the folder: " << size << " bytes, " 
+                          << pkgExtractionPercentage << "%" << std::endl;
+            } else {
+                std::cout << "Size of the folder: " << size << " bytes, " 
+                          << "0%" << std::endl;
             }
-        };
+        } else {
+            std::cout << "Size of the folder: " << size << " bytes, 0%" << std::endl; 
+        }
+
+        // Break out of the loop when size reaches or exceeds pkgSize
+        if (size >= pkgSize) {
+            break;
+        }
+    }
+}).detach();  // Detach the thread if it doesn’t need to be joined
+
     
     folderSizePrint();
 
