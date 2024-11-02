@@ -8,10 +8,33 @@
 #include "core/file_format/pkg_type.h"
 #include <iostream>
 #include <filesystem>
-#include <chrono>
-#include <thread>
 
 namespace fs = std::filesystem;
+
+uintmax_t getFolderSize(const fs::path& folderPath) {
+    uintmax_t totalSize = 0;
+
+    // Check if the path exists and is a directory
+    if (fs::exists(extract_path) && fs::is_directory(extract_path)) {
+        for (const auto& entry : fs::recursive_directory_iterator(folderPath)) {
+            if (fs::is_regular_file(entry.status())) {
+                totalSize += fs::file_size(entry);
+            }
+        }
+    } else {
+        std::cerr << "The provided path is not a valid directory: " << folderPath << std::endl;
+    }
+
+    return totalSize;
+}
+
+int folderSizePrint() {
+    uintmax_t size = getFolderSize(extract_path);
+    
+    std::cout << "Size of the folder: " << size << " bytes" << std::endl;
+
+    return 0;
+}
 
 static void DecompressPFSC(std::span<const char> compressed_data,
                            std::span<char> decompressed_data) {
@@ -109,38 +132,6 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
     return true;
 }
 
-uintmax_t getFolderSize(const fs::path& folderPath) {
-    uintmax_t totalSize = 0;
-    
-    // Iterate through the directory and sum the sizes of the files
-    for (const auto& entry : fs::recursive_directory_iterator(folderPath)) {
-        if (fs::is_regular_file(entry)) {
-            totalSize += fs::file_size(entry);
-        }
-    }
-
-    return totalSize;
-
-}
-int checkFolderSize() {
-
-    // Check if the path exists
-    if (!fs::exists(extract_path)) {
-        std::cerr << "The specified path does not exist: " << extract_path << std::endl;
-        return 1;
-    }
-
-    while (true) {
-        uintmax_t size = getFolderSize(extract_path);
-        std::cout << "Current size of folder \"" << extract_path << "\": " << size << " bytes" << std::endl;
-
-        // Wait for 1 second
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-    }
-
-    return 0;
-}
-
 bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::path& extract,
                   std::string& failreason) {
     extract_path = extract;
@@ -151,8 +142,7 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
     }
 
     getFolderSize();
-    checkFolderSize();
-
+    folderSizePrint();
     std::cout << extract_path << std::endl;
     std::cout << pkgSize << std::endl;
 
@@ -170,8 +160,6 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
         failreason = "Content size is bigger than pkg size";
         return false;
     }
-
-
 
     u32 offset = pkgheader.pkg_table_entry_offset;
     u32 n_files = pkgheader.pkg_table_entry_count;
