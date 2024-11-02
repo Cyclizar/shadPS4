@@ -6,6 +6,7 @@
 #include "common/logging/formatter.h"
 #include "core/file_format/pkg.h"
 #include "core/file_format/pkg_type.h"
+#include <iostream>
 
 static void DecompressPFSC(std::span<const char> compressed_data,
                            std::span<char> decompressed_data) {
@@ -103,11 +104,6 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
     return true;
 }
 
-#include <iostream>
-#include <filesystem>
-#include <vector>
-// Include other necessary headers
-
 bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::path& extract,
                   std::string& failreason) {
     extract_path = extract;
@@ -116,6 +112,10 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
     if (!file.IsOpen()) {
         return false;
     }
+
+    std::cout << extract_path << std::endl;
+    std::cout << pkgSize << std::endl;
+
     pkgSize = file.GetSize();
     file.ReadRaw<u8>(&pkgheader, sizeof(PKGHeader));
 
@@ -133,12 +133,6 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
 
     u32 offset = pkgheader.pkg_table_entry_offset;
     u32 n_files = pkgheader.pkg_table_entry_count;
-
-    // Select the game install directory
-    InstallDirSelect ids; // Ensure InstallDirSelect is correctly included and accessible
-    ids.exec();
-    auto game_install_dir = ids.getSelectedDirectory();
-    std::cout << "Game Install Directory: " << game_install_dir.string() << std::endl; // Print the directory
 
     std::array<u8, 64> concatenated_ivkey_dk3;
     std::array<u8, 32> seed_digest;
@@ -196,12 +190,6 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
             for (int i = 0; i < 7; i++) {
                 file.Read(digest1[i]);
             }
-        }
-    }
-
-    return true; // Add a return statement if necessary
-}
-
 
             for (int i = 0; i < 7; i++) {
                 file.Read(key1[i]);
