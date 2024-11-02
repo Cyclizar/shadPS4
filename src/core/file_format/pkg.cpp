@@ -136,29 +136,24 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
         return totalSize;
     };
     new std::thread([&] {
-        pkgSize = file.GetSize();
-        while (true) {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-            uintmax_t size = getFolderSize(extract_path);
-
-            if (pkgSize != 0) {
-                auto pkgExtractionPercentageVariable1 = static_cast<double>(size) / pkgSize;
-                if (pkgExtractionPercentageVariable1 != 0) { // Ensure it's not zero
+        auto folderSizePrint = [&]() {
+            pkgSize = file.GetSize();
+            while (true) {
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                uintmax_t size = getFolderSize(extract_path);
+                if (pkgSize != 0) {
+                    auto pkgExtractionPercentageVariable1 = size / pkgSize;
                     auto pkgExtractionPercentage = 100 / pkgExtractionPercentageVariable1;
                     std::cout << "Size of the folder: " << size << " bytes, " << pkgExtractionPercentage << "%" << std::endl;
-                } else {
-                    std::cout << "Size of the folder: " << size << " bytes, " << "0" << "%" << std::endl;
                 }
-            } else {
-                std::cout << "Size of the folder: " << size << " bytes, " << "0" << "%" << std::endl; 
+                else {
+                   std::cout << "Size of the folder: " << size << " bytes, " << "0" << "%" << std::endl; 
+                }
+                    if (size >= pkgSize) {
+                        break;
+                    }
             }
-
-            if (size >= pkgSize) {
-                break;  // Use break to exit the loop
-            }
-        }
-    }).detach();  // Detach the thread if you don’t need to join it
-
+        };
     
     folderSizePrint();
 
