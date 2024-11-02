@@ -136,30 +136,31 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
         return totalSize;
     };
 
-new std::thread([&] {
-    uintmax_t pkgSize = file.GetSize();
-    double pkgExtractionPercentage = 0.0;
+    new std::thread([&] {
 
-    auto folderSizePrint = [&]() {
-        while (true) {
-            std::this_thread::sleep_for(std::chrono::seconds(1));
-            uintmax_t size = std::filesystem::file_size(extract_path);
+        auto percentageMath(){
+            pkgExtractionPercentageVariable1 = size / pkgSize
+            pkgExtractionPercentage = 100 / pkgExtractionPercentageVariable1
+        };
 
-            if (pkgSize != 0) {
-                percentageMath(size, pkgSize, pkgExtractionPercentage);
-                std::cout << "Size of the folder: " << size << " bytes, " << pkgExtractionPercentage << "%" << std::endl;
-            } else {
-                std::cout << "Size of the folder: " << size << " bytes, " << "0" << "%" << std::endl;
+        auto folderSizePrint = [&]() {
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+            pkgSize = file.GetSize();
+            while (true) {
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                uintmax_t size = getFolderSize(extract_path);
+                if (pkgSize != 0) {
+                    percentageMath();
+                    std::cout << "Size of the folder: " << size << " bytes, " << pkgExtractionPercentage << "%" << std::endl;
+                }
+                else {
+                   std::cout << "Size of the folder: " << size << " bytes, " << "0" << "%" << std::endl; 
+                }
+                    if (size >= pkgSize) {
+                        break;
+                    }
             }
-
-            if (size >= pkgSize) {
-                break;
-            }
-        }
-    };
-
-    folderSizePrint();
-});
+        };
     
     folderSizePrint();
 
