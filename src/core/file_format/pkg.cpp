@@ -137,17 +137,20 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
     };
     new std::thread([&] {
         auto folderSizePrint = [&]() {
+            pkgSize = file.GetSize();
             while (true) {
                 uintmax_t size = getFolderSize(extract_path);
                 std::cout << "Size of the folder: " << size << " bytes" << std::endl;
                 std::this_thread::sleep_for(std::chrono::seconds(5));
+                    if (size >= pkgSize) {
+                        return 0;
+                    }
             }
         };
     
     folderSizePrint();
-    
-    });
 
+    });
 
     getFolderSize(extract_path);
 
