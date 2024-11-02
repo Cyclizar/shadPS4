@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <chrono>
 #include <thread>
+#include <unistd.h>
 
 namespace fs = std::filesystem;
 
@@ -141,12 +142,12 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
         while (true) {
             uintmax_t size = getFolderSize(extract_path);
             std::cout << "Size of the folder: " << size << " bytes" << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(5));
+            usleep(1000000);
         }
     };
 
     getFolderSize(extract_path);
-        folderSizePrint();
+    folderSizePrint();
 
 //    auto folderSizePrintLoop = []() {
 //            while (true) { // Correctly using curly braces
