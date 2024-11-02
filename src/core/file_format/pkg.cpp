@@ -109,15 +109,6 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
     return true;
 }
 
-bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::path& extract,
-                  std::string& failreason) {
-    extract_path = extract;
-    pkgpath = filepath;
-    Common::FS::IOFile file(filepath, Common::FS::FileAccessMode::Read);
-    if (!file.IsOpen()) {
-        return false;
-    }
-
 uintmax_t getFolderSize(const fs::path& folderPath) {
     uintmax_t totalSize = 0;
     
@@ -131,7 +122,7 @@ uintmax_t getFolderSize(const fs::path& folderPath) {
     return totalSize;
 
 }
-int main() {
+int checkFolderSize() {
 
     // Check if the path exists
     if (!fs::exists(extract_path)) {
@@ -150,6 +141,18 @@ int main() {
     return 0;
 }
 
+bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::path& extract,
+                  std::string& failreason) {
+    extract_path = extract;
+    pkgpath = filepath;
+    Common::FS::IOFile file(filepath, Common::FS::FileAccessMode::Read);
+    if (!file.IsOpen()) {
+        return false;
+    }
+
+    getFolderSize();
+    checkFolderSize();
+
     std::cout << extract_path << std::endl;
     std::cout << pkgSize << std::endl;
 
@@ -167,6 +170,8 @@ int main() {
         failreason = "Content size is bigger than pkg size";
         return false;
     }
+
+
 
     u32 offset = pkgheader.pkg_table_entry_offset;
     u32 n_files = pkgheader.pkg_table_entry_count;
