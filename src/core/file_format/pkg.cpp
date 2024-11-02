@@ -110,11 +110,6 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
     return true;
 }
 
-#include <filesystem>
-#include <iostream>
-#include <thread>
-#include <chrono>
-
 bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::path& extract,
                   std::string& failreason) {
     extract_path = extract;
@@ -126,6 +121,8 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
 
     auto getFolderSize = [](const std::filesystem::path& path) -> uintmax_t {
         uintmax_t totalSize = 0;
+        
+        // Check if the path exists and is a directory
         if (std::filesystem::exists(path) && std::filesystem::is_directory(path)) {
             for (const auto& entry : std::filesystem::recursive_directory_iterator(path)) {
                 if (std::filesystem::is_regular_file(entry.status())) {
@@ -135,30 +132,31 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
         } else {
             std::cerr << "The provided path is not a valid directory: " << path << std::endl;
         }
+
         return totalSize;
     };
 
-    // Start a new thread to monitor extraction progress
-    std::thread([&] {
-        std::this_thread::sleep_for(std::chrono::seconds(1)); // Initial delay
-        pkgSize = file.GetSize();
-        
-        while (true) {
-            std::this_thread::sleep_for(std::chrono::seconds(1)); // Update interval
-            uintmax_t size = getFolderSize(extract_path);
-            double pkgExtractionPercentage = (static_cast<double>(size) / pkgSize) * 100.0;
+        folderSizePrint();
 
-            std::cout << "Size of the folder: " << size << " bytes, "
-                      << pkgExtractionPercentage << "%" << std::endl;
-
-            if (size >= pkgSize) {
-                break; // Exit the loop if extraction is complete
+    new std::thread([&] {
+        auto folderSizePrint = [&]();
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            pkgSize = file.GetSize();
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                uintmax_t size = getFolderSize(extract_path);
+                    // auto pkgExtractionPercentageVariable1 = size / pkgSize;
+                    // auto pkgExtractionPercentage = 100 / pkgExtractionPercentageVariable1;
+                    std::cout << "Size of the folder: " << size << " bytes, " << "pkgExtractionPercentage" << "%" << std::endl;
+                    if (size >= pkgSize) {
+                        break;
+                    else{
+                        folderSizePrint();
+                    }
+                  }})
             }
-        }
-    }).detach(); // Detach the thread to run independently
+    
 
-    return true;
-}
+    getFolderSize(extract_path);
 
 
 //    auto folderSizePrintLoop = []() {
