@@ -136,13 +136,14 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
         return totalSize;
     };
 
-    void percentagemMath(){
+    void percentageMath(){
         pkgExtractionPercentageVariable1 = size / pkgSize
         pkgExtractionPercentage = 100 / pkgExtractionPercentageVariable1
     };
 
     new std::thread([&] {
         auto folderSizePrint = [&]() {
+            percentageMath = 0
             std::this_thread::sleep_for(std::chrono::seconds(3));
             pkgSize = file.GetSize();
             while (true) {
