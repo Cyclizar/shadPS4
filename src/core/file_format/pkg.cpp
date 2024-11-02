@@ -6,8 +6,6 @@
 #include "common/logging/formatter.h"
 #include "core/file_format/pkg.h"
 #include "core/file_format/pkg_type.h"
-#include <iostream>
-
 
 static void DecompressPFSC(std::span<const char> compressed_data,
                            std::span<char> decompressed_data) {
@@ -52,23 +50,21 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
     if (!file.IsOpen()) {
         return false;
     }
-    pkgSize = file.GetSize(); // Total size of the package
+    pkgSize = file.GetSize();
 
     file.Read(pkgheader);
-    if (pkgheader.magic != 0x7F434E54) {
+    if (pkgheader.magic != 0x7F434E54)
         return false;
-    }
 
     for (const auto& flag : flagNames) {
         if (isFlagSet(pkgheader.pkg_content_flags, flag.first)) {
-            if (!pkgFlags.empty()) {
-                pkgFlags += ", ";
-            }
-            pkgFlags += flag.second;
+            if (!pkgFlags.empty())
+                pkgFlags += (", ");
+            pkgFlags += (flag.second);
         }
     }
 
-    // Find title ID, part of pkg_content_id starting at offset 0x40
+    // Find title id it is part of pkg_content_id starting at offset 0x40
     file.Seek(0x47); // skip first 7 characters of content_id
     file.Read(pkgTitleID);
 
@@ -80,8 +76,6 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
         return false;
     }
 
-    u64 TotalExtractedSize = 0; // Initialize variable to track extracted file sizes
-
     for (int i = 0; i < n_files; i++) {
         PKGEntry entry{};
         file.Read(entry.id);
@@ -91,13 +85,6 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
         file.Read(entry.offset);
         file.Read(entry.size);
         file.Seek(8, Common::FS::SeekOrigin::CurrentPosition);
-
-        // Update the total extracted size with the current file sizex
-        TotalExtractedSize += entry.size;
-        
-        // Calculate the extraction progress percentage
-        double ProgressPercentage = (static_cast<double>(TotalExtractedSize) / pkgSize) * 100.0;
-        std::cout << "Progress: " << ProgressPercentage << "%\n";
 
         // Try to figure out the name
         const auto name = GetEntryNameByType(entry.id);
@@ -111,151 +98,94 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
             file.ReadRaw<u8>(sfo.data(), entry.size);
         }
     }
-    
     file.Close();
+
     return true;
 }
 
-
 #include <iostream>
 #include <filesystem>
-#include <fstream>
 #include <vector>
-#include <array>
+// Include other necessary headers
 
-class PKG {
-public:
-    struct PKGHeader {
-        uint32_t magic;
-        uint32_t pkg_size;
-        uint32_t pkg_content_size;
-        uint32_t pkg_content_offset;
-        uint32_t pkg_table_entry_offset;
-        uint32_t pkg_table_entry_count;
-    };
-    
-    struct PKGEntry {
-        uint32_t id;
-        uint32_t filename_offset;
-        uint32_t flags1;
-        uint32_t flags2;
-        uint64_t offset;
-        uint64_t size;
-    };
-    
-    bool Extract(const std::filesystem::path& filepath, const std::filesystem::path& extract,
-                 std::string& failreason);
-
-private:
-    PKGHeader pkgheader;
-    uint64_t pkgSize;
-    std::filesystem::path extract_path;
-    std::filesystem::path pkgpath;
-
-    std::string GetEntryNameByType(uint32_t id);
-};
-
-#include <filesystem>
-#include <iostream>
-#include <fstream>
-
-bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::path& extract, std::string& failreason) {
+bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::path& extract,
+                  std::string& failreason) {
     extract_path = extract;
     pkgpath = filepath;
-
-    std::ifstream file(filepath, std::ios::binary);
-    if (!file.is_open()) {
-        failreason = "Failed to open PKG file";
+    Common::FS::IOFile file(filepath, Common::FS::FileAccessMode::Read);
+    if (!file.IsOpen()) {
         return false;
     }
+    pkgSize = file.GetSize();
+    file.ReadRaw<u8>(&pkgheader, sizeof(PKGHeader));
 
-    file.seekg(0, std::ios::end);
-    pkgSize = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    file.read(reinterpret_cast<char*>(&pkgheader), sizeof(PKGHeader));
-
-    if (pkgheader.magic != 0x7F434E54) {
-        failreason = "Invalid PKG magic number";
+    if (pkgheader.magic != 0x7F434E54)
         return false;
-    }
 
     if (pkgheader.pkg_size > pkgSize) {
         failreason = "PKG file size is different";
         return false;
     }
-
     if ((pkgheader.pkg_content_size + pkgheader.pkg_content_offset) > pkgheader.pkg_size) {
-        failreason = "Content size is bigger than PKG size";
+        failreason = "Content size is bigger than pkg size";
         return false;
     }
 
-    uint32_t offset = pkgheader.pkg_table_entry_offset;
-    uint32_t n_files = pkgheader.pkg_table_entry_count;
+    u32 offset = pkgheader.pkg_table_entry_offset;
+    u32 n_files = pkgheader.pkg_table_entry_count;
 
-    file.seekg(offset, std::ios::beg);
+    // Select the game install directory
+    InstallDirSelect ids; // Ensure InstallDirSelect is correctly included and accessible
+    ids.exec();
+    auto game_install_dir = ids.getSelectedDirectory();
+    std::cout << "Game Install Directory: " << game_install_dir.string() << std::endl; // Print the directory
 
-    uint64_t TotalExtractedSize = 0;
-    int lastPercentage = -1;
+    std::array<u8, 64> concatenated_ivkey_dk3;
+    std::array<u8, 32> seed_digest;
+    std::array<std::array<u8, 32>, 7> digest1;
+    std::array<std::array<u8, 256>, 7> key1;
+    std::array<u8, 256> imgkeydata;
 
-    for (uint32_t i = 0; i < n_files; ++i) {
+    if (!file.Seek(offset)) {
+        failreason = "Failed to seek to PKG table entry offset";
+        return false;
+    }
+
+    for (int i = 0; i < n_files; i++) {
         PKGEntry entry{};
-        file.read(reinterpret_cast<char*>(&entry), sizeof(PKGEntry));
+        file.Read(entry.id);
+        file.Read(entry.filename_offset);
+        file.Read(entry.flags1);
+        file.Read(entry.flags2);
+        file.Read(entry.offset);
+        file.Read(entry.size);
+        file.Seek(8, Common::FS::SeekOrigin::CurrentPosition);
 
-        std::streampos currentPos = file.tellg();
+        auto currentPos = file.Tell();
 
-        const std::string name = GetEntryNameByType(entry.id);
+        // Try to figure out the name
+        const auto name = GetEntryNameByType(entry.id);
         const auto filepath = extract_path / "sce_sys" / name;
         std::filesystem::create_directories(filepath.parent_path());
 
-        std::ofstream out(filepath, std::ios::binary);
-        if (!out) {
-            failreason = "Failed to open output file";
-            return false;
+        if (name.empty()) {
+            // Just print with id
+            Common::FS::IOFile out(extract_path / "sce_sys" / std::to_string(entry.id),
+                                   Common::FS::FileAccessMode::Write);
+            if (!file.Seek(entry.offset)) {
+                failreason = "Failed to seek to PKG entry offset";
+                return false;
+            }
+
+            std::vector<u8> data;
+            data.resize(entry.size);
+            file.ReadRaw<u8>(data.data(), entry.size);
+            out.WriteRaw<u8>(data.data(), entry.size);
+            out.Close();
+
+            file.Seek(currentPos);
+            continue;
         }
-
-        file.seekg(entry.offset, std::ios::beg);
-        std::vector<uint8_t> data(entry.size);
-        file.read(reinterpret_cast<char*>(data.data()), entry.size);
-        out.write(reinterpret_cast<char*>(data.data()), entry.size);
-        out.close();
-
-        file.seekg(currentPos);
-
-        TotalExtractedSize += entry.size;
-        int currentPercentage = static_cast<int>((TotalExtractedSize * 100) / pkgSize);
-
-        if (currentPercentage > lastPercentage) {
-            lastPercentage = currentPercentage;
-            std::cout << "Progress: " << currentPercentage << "%\n";
-        }
-    }
-
-    file.close();
-
-    // Calculate extracted folder size
-    uint64_t extractedFolderSize = 0;
-    for (const auto& file : std::filesystem::recursive_directory_iterator(extract_path)) {
-        if (std::filesystem::is_regular_file(file)) {
-            extractedFolderSize += std::filesystem::file_size(file);
-        }
-    }
-
-    // Calculate the percentage
-    int extractionPercentage = static_cast<int>((extractedFolderSize * 100) / pkgSize);
-    std::cout << "Extraction completed. Extracted folder is " << extractionPercentage << "% of the original PKG size.\n";
-
-    return true;
-}
-
-
-std::string PKG::GetEntryNameByType(uint32_t id) {
-    // Implementation of GetEntryNameByType to map IDs to file names
-    // Adjust according to your actual naming logic
-    return "example_name";  // placeholder
-}
-
-
 
         if (entry.id == 0x1) {         // DIGESTS, seek;
                                        // file.Seek(entry.offset, fsSeekSet);
@@ -266,6 +196,12 @@ std::string PKG::GetEntryNameByType(uint32_t id) {
             for (int i = 0; i < 7; i++) {
                 file.Read(digest1[i]);
             }
+        }
+    }
+
+    return true; // Add a return statement if necessary
+}
+
 
             for (int i = 0; i < 7; i++) {
                 file.Read(key1[i]);
