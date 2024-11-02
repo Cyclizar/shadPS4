@@ -138,29 +138,21 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
 
 
 
-    std::thread t([&]() {
+std::thread t([&]() {
     auto folderSizePrint = [&]() {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         pkgSize = file.GetSize(); // Get package size once
-
-        while (true) {
             std::this_thread::sleep_for(std::chrono::seconds(1)); // Wait 1 second
             uintmax_t size = getFolderSize(extract_path);
             std::cout << "Size of the folder: " << size << " bytes" << std::endl;
         }
+
+    auto folderSizePrintLoop = []() {
+        while (true) { // Correctly using curly braces
+            uintmax_t size = folderSizePrint();
+            }
     };
-    folderSizePrint();
     });
-
-
-
-//    auto folderSizePrintLoop = []() {
-//            while (true) { // Correctly using curly braces
-//                uintmax_t size = getFolderSize(path);
-//                // std::cout << "Size of the folder: " << size << " bytes" << std::endl;
-//                std::this_thread::sleep_for(std::chrono::seconds(1)); // Sleep for 1 second
-//            }
-//    };
 
 
     std::cout << extract_path << std::endl;
