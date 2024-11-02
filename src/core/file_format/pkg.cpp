@@ -11,30 +11,7 @@
 
 namespace fs = std::filesystem;
 
-uintmax_t getFolderSize(const fs::path& extract_path) {
-    uintmax_t totalSize = 0;
 
-    // Check if the path exists and is a directory
-    if (fs::exists(extract_path) && fs::is_directory(extract_path)) {
-        for (const auto& entry : fs::recursive_directory_iterator(extract_path)) {
-            if (fs::is_regular_file(entry.status())) {
-                totalSize += fs::file_size(entry);
-            }
-        }
-    } else {
-        std::cerr << "The provided path is not a valid directory: " << extract_path << std::endl;
-    }
-
-    return totalSize;
-}
-
-int folderSizePrint() {
-    uintmax_t size = getFolderSize(extract_path);
-    
-    std::cout << "Size of the folder: " << size << " bytes" << std::endl;
-
-    return 0;
-}
 
 static void DecompressPFSC(std::span<const char> compressed_data,
                            std::span<char> decompressed_data) {
@@ -140,6 +117,31 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
     if (!file.IsOpen()) {
         return false;
     }
+
+uintmax_t getFolderSize(const fs::path& extract_path) {
+    uintmax_t totalSize = 0;
+
+    // Check if the path exists and is a directory
+    if (fs::exists(extract_path) && fs::is_directory(extract_path)) {
+        for (const auto& entry : fs::recursive_directory_iterator(extract_path)) {
+            if (fs::is_regular_file(entry.status())) {
+                totalSize += fs::file_size(entry);
+            }
+        }
+    } else {
+        std::cerr << "The provided path is not a valid directory: " << extract_path << std::endl;
+    }
+
+    return totalSize;
+}
+
+int folderSizePrint() {
+    uintmax_t size = getFolderSize(extract_path);
+    
+    std::cout << "Size of the folder: " << size << " bytes" << std::endl;
+
+    return 0;
+}
 
     getFolderSize();
     folderSizePrint();
