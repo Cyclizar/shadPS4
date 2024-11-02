@@ -1,18 +1,12 @@
 // SPDX-FileCopyrightText: Copyright 2024 shadPS4 Emulator Project
 // SPDX-License-Identifier: GPL-2.0-or-later
 
+#include <iostream>
 #include <zlib-ng.h>
 #include "common/io_file.h"
 #include "common/logging/formatter.h"
 #include "core/file_format/pkg.h"
 #include "core/file_format/pkg_type.h"
-#include <iostream>
-#include <filesystem>
-#include <chrono>
-#include <thread>
-
-namespace fs = std::filesystem;
-
 
 static void DecompressPFSC(std::span<const char> compressed_data,
                            std::span<char> decompressed_data) {
@@ -119,42 +113,6 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
         return false;
     }
 
-    auto getFolderSize = [](const std::filesystem::path& path) -> uintmax_t {
-        uintmax_t totalSize = 0;
-        
-        // Check if the path exists and is a directory
-        if (std::filesystem::exists(path) && std::filesystem::is_directory(path)) {
-            for (const auto& entry : std::filesystem::recursive_directory_iterator(path)) {
-                if (std::filesystem::is_regular_file(entry.status())) {
-                    totalSize += std::filesystem::file_size(entry);
-                }
-            }
-        } else {
-            std::cerr << "The provided path is not a valid directory: " << path << std::endl;
-        }
-
-        return totalSize;
-    };
-
-
-
-std::thread t([&]() {
-    auto folderSizePrint = [&]() {
-        std::this_thread::sleep_for(std::chrono::seconds(1));
-        pkgSize = file.GetSize(); // Get package size once
-            std::this_thread::sleep_for(std::chrono::seconds(1)); // Wait 1 second
-            uintmax_t size = getFolderSize(extract_path);
-            std::cout << "Size of the folder: " << size << " bytes" << std::endl;
-        }
-
-    auto folderSizePrintLoop = []() {
-        while (true) { // Correctly using curly braces
-            uintmax_t size = folderSizePrint();
-            }
-    };
-    });
-
-
     std::cout << extract_path << std::endl;
     std::cout << pkgSize << std::endl;
 
@@ -217,6 +175,7 @@ std::thread t([&]() {
             data.resize(entry.size);
             file.ReadRaw<u8>(data.data(), entry.size);
             out.WriteRaw<u8>(data.data(), entry.size);
+            std::cout << out.WriteRaw << std::endl;
             out.Close();
 
             file.Seek(currentPos);
