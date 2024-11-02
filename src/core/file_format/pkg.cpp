@@ -145,7 +145,7 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
 
     getFolderSize(extract_path);
 
-    auto folderSizePrintLoop {
+    auto folderSizePrintLoop = []() {
             uintmax_t while (true) { // Correctly using curly braces
                 uintmax_t size = getFolderSize(path);
                 // std::cout << "Size of the folder: " << size << " bytes" << std::endl;
