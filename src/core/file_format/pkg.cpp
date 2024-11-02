@@ -92,7 +92,7 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
         file.Read(entry.size);
         file.Seek(8, Common::FS::SeekOrigin::CurrentPosition);
 
-        // Update the total extracted size with the current file size
+        // Update the total extracted size with the current file sizex
         TotalExtractedSize += entry.size;
         
         // Calculate the extraction progress percentage
