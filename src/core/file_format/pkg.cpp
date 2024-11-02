@@ -7,6 +7,10 @@
 #include "common/logging/formatter.h"
 #include "core/file_format/pkg.h"
 #include "core/file_format/pkg_type.h"
+#include <iostream>
+#include <filesystem>
+
+namespace fs = std::filesystem;
 
 static void DecompressPFSC(std::span<const char> compressed_data,
                            std::span<char> decompressed_data) {
@@ -115,6 +119,25 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
 
     std::cout << extract_path << std::endl;
     std::cout << pkgSize << std::endl;
+        // Lambda function to check the size of the directory
+        int folderSizeCheck();
+        {
+
+            uintmax_t size = 0;
+
+            for (const auto& entry : fs::recursive_directory_iterator(extract_path)) {
+                if (fs::is_regular_file(entry)) {
+                    size += fs::file_size(entry);
+                }
+            }
+
+            std::cout << "Size of the directory: " << size << " bytes" << std::endl;
+
+            return 0;
+        }
+
+    folderSizeCheck();
+
 
     pkgSize = file.GetSize();
     file.ReadRaw<u8>(&pkgheader, sizeof(PKGHeader));
@@ -174,8 +197,7 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
             std::vector<u8> data;
             data.resize(entry.size);
             file.ReadRaw<u8>(data.data(), entry.size);
-            size_t written = out.WriteRaw<u8>(data.data(), entry.size);
-            std::cout << written << std::endl;
+            out.WriteRaw<u8>(data.data(), entry.size);
             out.Close();
 
             file.Seek(currentPos);
