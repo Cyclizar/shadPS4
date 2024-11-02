@@ -8,6 +8,8 @@
 #include "core/file_format/pkg_type.h"
 #include <iostream>
 #include <filesystem>
+#include <chrono>
+#include <thread>
 
 namespace fs = std::filesystem;
 
@@ -139,6 +141,7 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
         uintmax_t size = getFolderSize(extract_path);
         std::cout << "Size of the folder: " << size << " bytes" << std::endl;
         return 0;
+        std::this_thread::sleep_for(std::chrono::seconds(1));
     };
 
     getFolderSize(extract_path);
