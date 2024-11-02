@@ -139,7 +139,6 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
 
 
     std::thread t([&]() {
-    folderSizePrint();
     auto folderSizePrint = [&]() {
         std::this_thread::sleep_for(std::chrono::seconds(1));
         pkgSize = file.GetSize(); // Get package size once
@@ -150,6 +149,7 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
             std::cout << "Size of the folder: " << size << " bytes" << std::endl;
         }
     };
+    folderSizePrint();
     });
 
 
