@@ -118,32 +118,30 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
         return false;
     }
 
-uintmax_t getFolderSize(const fs::path& extract_path) {
-    uintmax_t totalSize = 0;
-
-    // Check if the path exists and is a directory
-    if (fs::exists(extract_path) && fs::is_directory(extract_path)) {
-        for (const auto& entry : fs::recursive_directory_iterator(extract_path)) {
-            if (fs::is_regular_file(entry.status())) {
-                totalSize += fs::file_size(entry);
+    auto getFolderSize = [](const std::filesystem::path& path) -> uintmax_t {
+        uintmax_t totalSize = 0;
+        
+        // Check if the path exists and is a directory
+        if (std::filesystem::exists(path) && std::filesystem::is_directory(path)) {
+            for (const auto& entry : std::filesystem::recursive_directory_iterator(path)) {
+                if (std::filesystem::is_regular_file(entry.status())) {
+                    totalSize += std::filesystem::file_size(entry);
+                }
             }
+        } else {
+            std::cerr << "The provided path is not a valid directory: " << path << std::endl;
         }
-    } else {
-        std::cerr << "The provided path is not a valid directory: " << extract_path << std::endl;
-    }
 
-    return totalSize;
-}
+        return totalSize;
+    };
 
-int folderSizePrint() {
-    uintmax_t size = getFolderSize(extract_path);
-    
-    std::cout << "Size of the folder: " << size << " bytes" << std::endl;
+    auto folderSizePrint = [&]() {
+        uintmax_t size = getFolderSize(extract_path);
+        std::cout << "Size of the folder: " << size << " bytes" << std::endl;
+        return 0;
+    };
 
-    return 0;
-}
-
-    getFolderSize();
+    getFolderSize(extract_path);
     folderSizePrint();
     std::cout << extract_path << std::endl;
     std::cout << pkgSize << std::endl;
