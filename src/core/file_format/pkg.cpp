@@ -11,18 +11,18 @@
 
 namespace fs = std::filesystem;
 
-uintmax_t getFolderSize(const fs::path& folderPath) {
+uintmax_t getFolderSize(const fs::path& extract_path) {
     uintmax_t totalSize = 0;
 
     // Check if the path exists and is a directory
     if (fs::exists(extract_path) && fs::is_directory(extract_path)) {
-        for (const auto& entry : fs::recursive_directory_iterator(folderPath)) {
+        for (const auto& entry : fs::recursive_directory_iterator(extract_path)) {
             if (fs::is_regular_file(entry.status())) {
                 totalSize += fs::file_size(entry);
             }
         }
     } else {
-        std::cerr << "The provided path is not a valid directory: " << folderPath << std::endl;
+        std::cerr << "The provided path is not a valid directory: " << extract_path << std::endl;
     }
 
     return totalSize;
