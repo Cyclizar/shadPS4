@@ -174,8 +174,8 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
             std::vector<u8> data;
             data.resize(entry.size);
             file.ReadRaw<u8>(data.data(), entry.size);
-            out.WriteRaw<u8>(data.data(), entry.size);
-            std::cout << out.WriteRaw << std::endl;
+            size_t written = out.WriteRaw<u8>(data.data(), entry.size);
+            std::cout << written << std::endl;
             out.Close();
 
             file.Seek(currentPos);
