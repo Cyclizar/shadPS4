@@ -143,11 +143,14 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
                 std::this_thread::sleep_for(std::chrono::seconds(5));
             }
         };
+    
+    folderSizePrint();
+    
     });
 
 
     getFolderSize(extract_path);
-        folderSizePrint();
+
 
 //    auto folderSizePrintLoop = []() {
 //            while (true) { // Correctly using curly braces
