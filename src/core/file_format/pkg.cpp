@@ -14,7 +14,6 @@
 namespace fs = std::filesystem;
 
 
-
 static void DecompressPFSC(std::span<const char> compressed_data,
                            std::span<char> decompressed_data) {
     zng_stream decompressStream;
@@ -136,13 +135,16 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
 
         return totalSize;
     };
+    new std::thread([&] {
+        auto folderSizePrint = [&]() {
+            while (true) {
+                uintmax_t size = getFolderSize(extract_path);
+                std::cout << "Size of the folder: " << size << " bytes" << std::endl;
+                std::this_thread::sleep_for(std::chrono::seconds(5));
+            }
+        };
+    });
 
-    auto folderSizePrint = [&]() {
-        while (true) {
-            uintmax_t size = getFolderSize(extract_path);
-            std::cout << "Size of the folder: " << size << " bytes" << std::endl;
-        }
-    };
 
     getFolderSize(extract_path);
         folderSizePrint();
