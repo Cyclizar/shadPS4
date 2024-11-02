@@ -7,6 +7,11 @@
 #include "core/file_format/pkg.h"
 #include "core/file_format/pkg_type.h"
 #include <iostream>
+#include <filesystem>
+#include <chrono>
+#include <thread>
+
+namespace fs = std::filesystem;
 
 static void DecompressPFSC(std::span<const char> compressed_data,
                            std::span<char> decompressed_data) {
@@ -112,6 +117,38 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
     if (!file.IsOpen()) {
         return false;
     }
+
+uintmax_t getFolderSize(const fs::path& folderPath) {
+    uintmax_t totalSize = 0;
+    
+    // Iterate through the directory and sum the sizes of the files
+    for (const auto& entry : fs::recursive_directory_iterator(folderPath)) {
+        if (fs::is_regular_file(entry)) {
+            totalSize += fs::file_size(entry);
+        }
+    }
+
+    return totalSize;
+
+}
+int main() {
+
+    // Check if the path exists
+    if (!fs::exists(extract_path)) {
+        std::cerr << "The specified path does not exist: " << extract_path << std::endl;
+        return 1;
+    }
+
+    while (true) {
+        uintmax_t size = getFolderSize(extract_path);
+        std::cout << "Current size of folder \"" << extract_path << "\": " << size << " bytes" << std::endl;
+
+        // Wait for 1 second
+        std::this_thread::sleep_for(std::chrono::seconds(1));
+    }
+
+    return 0;
+}
 
     std::cout << extract_path << std::endl;
     std::cout << pkgSize << std::endl;
