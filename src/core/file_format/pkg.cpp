@@ -162,7 +162,7 @@ new std::thread([&] {
             break;
         }
     }
-}).detach();  // Detach the thread if it doesn’t need to be joined
+}).detach();
 
     
     folderSizePrint();
