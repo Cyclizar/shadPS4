@@ -137,6 +137,7 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
     };
     new std::thread([&] {
         auto folderSizePrint = [&]() {
+            std::this_thread::sleep_for(std::chrono::seconds(3));
             pkgSize = file.GetSize();
             while (true) {
                 std::this_thread::sleep_for(std::chrono::seconds(1));
