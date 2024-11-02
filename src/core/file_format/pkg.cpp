@@ -147,6 +147,7 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
     };
 
     getFolderSize(extract_path);
+        folderSizePrint();
 
 //    auto folderSizePrintLoop = []() {
 //            while (true) { // Correctly using curly braces
@@ -156,7 +157,6 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
 //            }
 //    };
 
-    folderSizePrintLoop();
 
     std::cout << extract_path << std::endl;
     std::cout << pkgSize << std::endl;
