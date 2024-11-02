@@ -144,13 +144,14 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
     };
 
     getFolderSize(extract_path);
-    auto folderSizePrintLoop
+    auto folderSizePrintLoop {
         while (true) (
             folderSizePrint();
             std::this_thread::sleep_for(std::chrono::seconds(1));
         )
+    }
     folderSizePrintLoop();
-    
+
     std::cout << extract_path << std::endl;
     std::cout << pkgSize << std::endl;
 
