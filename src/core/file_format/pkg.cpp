@@ -118,7 +118,7 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
     if (!file.IsOpen()) {
         return false;
     }
-
+                  
     auto getFolderSize = [](const std::filesystem::path& path) -> uintmax_t {
         uintmax_t totalSize = 0;
         
@@ -142,13 +142,15 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
                 std::this_thread::sleep_for(std::chrono::seconds(1));
                 uintmax_t size = getFolderSize(extract_path);
                 if (pkgSize != 0) {
-                    auto pkgExtractionPercentageVariable1 = static_cast<double>(size) / pkgSize;
-                    if (pkgExtractionPercentageVariable1 != 0) { // Ensure it's not zero
-                    auto pkgExtractionPercentage = 100 / pkgExtractionPercentageVariable1;
+                    pkgExtractionPercentageVariable1 = static_cast<double>(size) / pkgSize;
+                    if (pkgExtractionPercentageVariable1 != 0) {
+                    pkgExtractionPercentage = 100 / pkgExtractionPercentageVariable1;
                     std::cout << "Size of the folder: " << size << " bytes, " << pkgExtractionPercentage << "%" << std::endl;
-                }   else {
+                }   
+                    else {
                    std::cout << "Size of the folder: " << size << " bytes, " << "0" << "%" << std::endl; 
-                }   if (size >= pkgSize) {
+                }   
+                    if (size >= pkgSize) {
                         break;
                     }
             }
