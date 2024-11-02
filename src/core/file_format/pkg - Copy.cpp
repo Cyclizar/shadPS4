@@ -7,13 +7,6 @@
 #include "core/file_format/pkg.h"
 #include "core/file_format/pkg_type.h"
 #include <iostream>
-#include <filesystem>
-#include <chrono>
-#include <thread>
-
-namespace fs = std::filesystem;
-
-
 
 static void DecompressPFSC(std::span<const char> compressed_data,
                            std::span<char> decompressed_data) {
@@ -119,43 +112,6 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
     if (!file.IsOpen()) {
         return false;
     }
-
-    auto getFolderSize = [](const std::filesystem::path& path) -> uintmax_t {
-        uintmax_t totalSize = 0;
-        
-        // Check if the path exists and is a directory
-        if (std::filesystem::exists(path) && std::filesystem::is_directory(path)) {
-            for (const auto& entry : std::filesystem::recursive_directory_iterator(path)) {
-                if (std::filesystem::is_regular_file(entry.status())) {
-                    totalSize += std::filesystem::file_size(entry);
-                }
-            }
-        } else {
-            std::cerr << "The provided path is not a valid directory: " << path << std::endl;
-        }
-
-        return totalSize;
-    };
-
-    auto folderSizePrint = [&]() {
-        while (true) {
-            uintmax_t size = getFolderSize(extract_path);
-            std::cout << "Size of the folder: " << size << " bytes" << std::endl;
-            std::this_thread::sleep_for(std::chrono::seconds(5));
-        }
-    };
-
-    getFolderSize(extract_path);
-        folderSizePrint();
-
-//    auto folderSizePrintLoop = []() {
-//            while (true) { // Correctly using curly braces
-//                uintmax_t size = getFolderSize(path);
-//                // std::cout << "Size of the folder: " << size << " bytes" << std::endl;
-//                std::this_thread::sleep_for(std::chrono::seconds(1)); // Sleep for 1 second
-//            }
-//    };
-
 
     std::cout << extract_path << std::endl;
     std::cout << pkgSize << std::endl;
