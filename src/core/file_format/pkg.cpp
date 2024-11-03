@@ -108,6 +108,26 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
     return true;
 }
 
+
+
+
+
+int folderSizeCheck(const fs::path& extract_path) {
+    uintmax_t size = 0;
+
+    for (const auto& entry : fs::recursive_directory_iterator(extract_path)) {
+        if (fs::is_regular_file(entry)) {
+            size += fs::file_size(entry);
+        }
+    }
+
+    std::cout << "Size of the directory: " << size << " bytes" << std::endl;
+
+    return static_cast<int>(size); // Cast to int if needed, though size could exceed int range
+}
+
+
+
 bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::path& extract,
                   std::string& failreason) {
     extract_path = extract;
@@ -119,24 +139,16 @@ bool PKG::Extract(const std::filesystem::path& filepath, const std::filesystem::
 
     std::cout << extract_path << std::endl;
     std::cout << pkgSize << std::endl;
-        // Lambda function to check the size of the directory
-        int folderSizeCheck();
-        {
 
-            uintmax_t size = 0;
 
-            for (const auto& entry : fs::recursive_directory_iterator(extract_path)) {
-                if (fs::is_regular_file(entry)) {
-                    size += fs::file_size(entry);
-                }
-            }
 
-            std::cout << "Size of the directory: " << size << " bytes" << std::endl;
 
+    int main();
+    {
+            folderSizeCheck(extract_path);
             return 0;
         }
 
-    folderSizeCheck();
 
 
     pkgSize = file.GetSize();
