@@ -113,7 +113,7 @@ bool PKG::Open(const std::filesystem::path& filepath, std::string& failreason) {
 
 
 int folderSizeCheck(const fs::path& extract_path) {
-    uintmax_t size = 0;
+    uintmax_t size = NULL;
 
     for (const auto& entry : fs::recursive_directory_iterator(extract_path)) {
         if (fs::is_regular_file(entry)) {
